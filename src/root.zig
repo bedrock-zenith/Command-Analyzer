@@ -2,13 +2,13 @@
 const std = @import("std");
 const Io = std.Io;
 
-pub const Parser = struct {
+pub const Lexer = struct {
     source: []const u8,
     cursor: usize = 0,
+};
 
-    pub fn name(parser: *@This()) ?[]const u8 {
-        return identifier(parser);
-    }
+pub const Parser = struct {
+    lexer: Lexer,
 
     pub fn identifier(parser: *@This()) ?[]const u8 {
         if (parser.cursor >= parser.source.len) {
@@ -35,59 +35,38 @@ pub const Parser = struct {
         }
     }
 
-    pub fn branch(self: @This()) @This() {
-        return self;
+    pub inline fn isWhiteSpace(char: anytype) bool {
+        return switch (char) {
+            ' ', '\n', '\r' => true,
+            else => false,
+        };
+    }
+
+    pub inline fn isContinuous(char: anytype) bool {
+        return switch (char) {
+            'a'...'z', 'A'...'Z', '0'...'9', '_' => true,
+            else => false,
+        };
     }
 };
 
-pub inline fn isWhiteSpace(char: anytype) bool {
-    return switch (char) {
-        ' ', '\n', '\r' => true,
-        else => false,
-    };
-}
-
-pub inline fn isContinuous(char: anytype) bool {
-    return switch (char) {
-        'a'...'z', 'A'...'Z', '0'...'9', '_' => true,
-        else => false,
-    };
-}
-
-pub const CommandArgument = union(enum) {
-    enumerable: [][]const u8,
-    integer,
-    decimal,
-    target,
-    json,
+// We want similar
+pub const NumberToken = struct {
+    pub fn parse(parser: *Parser) !NumberToken {
+        _ = parser; // autofix
+    }
 };
 
-pub const CommandGraph = struct {
-    name: []const u8,
+pub const StringToken = struct {
+    pub fn parse(parser: *Parser) !StringToken {
+        _ = parser; // autofix
+    }
 };
 
-pub const CommandEnum = struct {
-    pub fn validate() bool {}
-};
-pub const CommandTarget = struct {
-    pub fn validate() bool {}
-};
-
-pub const CommandType = union(enum) {
-    enumerable: CommandEnum,
-    integer: void,
-    decimal: void,
-    string: void,
-    target: CommandTarget,
-};
-
-pub const CommandNode = struct {
-    type: CommandType,
-    pub fn next() []CommandNode {}
-};
-
-pub const CommandParserContext = struct {
-    branches: []const Parser,
+pub const EnumToken = struct {
+    pub fn parse(parser: *Parser) !EnumToken {
+        _ = parser; // autofix
+    }
 };
 
 // - We need to create some kind of graph and being able to eliminate dead branches later on
@@ -96,7 +75,3 @@ pub const CommandParserContext = struct {
 // - Elimination should be done early based on the enum type
 // - We can optimize with enum unions, if every type in root of each branch has same type we can just parse it once and resolve right after
 //  branches shouldn't collide too much, but might afaik?
-// -
-//
-
-//
